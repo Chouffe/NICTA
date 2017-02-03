@@ -63,6 +63,8 @@ however, your first post might be moderated. This is simply to prevent spam.
    You may need to set permissions on the root directory and the ghci configuration
    file, `chmod 600 .ghci ./`.
 
+   > stack exec ghci
+
 4. Inspect the introductory modules to get a feel for Haskell's syntax, then move
    on to the exercises starting with `Course.List`. The [Progression](#progression)
    section of this document lists the recommended order in which to attempt the exercises.
