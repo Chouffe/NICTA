@@ -1,22 +1,22 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE InstanceSigs        #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE RebindableSyntax    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE InstanceSigs #-}
-{-# LANGUAGE RebindableSyntax #-}
 
 module Course.Monad(
   Monad(..)
 , join
-, (>>=)  
+, (>>=)
 , (<=<)
 ) where
 
-import Course.Applicative hiding ((<*>))
-import Course.Core
-import Course.Functor
-import Course.Id
-import Course.List
-import Course.Optional
-import qualified Prelude as P((=<<))
+import           Course.Applicative hiding ((<*>))
+import           Course.Core
+import           Course.Functor
+import           Course.Id
+import           Course.List
+import           Course.Optional
+import qualified Prelude            as P ((=<<))
 
 -- | All instances of the `Monad` type-class must satisfy one law. This law
 -- is not checked by the compiler. This law is given as:
@@ -68,8 +68,18 @@ infixr 1 =<<
   f (a -> b)
   -> f a
   -> f b
-(<*>) =
-  error "todo: Course.Monad#(<*>)"
+(<*>) mf mx = (\f -> pure . f =<< mx) =<< mf
+
+-- (<*>) mf mx = do
+--   f <- mf
+--   x <- mx
+--   return $ f x
+
+-- (<*>) mf mx = mf >>= \f -> mx >>= \x -> return f x
+-- (<*>) mf mx = (\f -> (\x -> return f x) =<< mx) =<< mf
+
+
+-- FIXME
 
 infixl 4 <*>
 
@@ -82,8 +92,7 @@ instance Monad Id where
     (a -> Id b)
     -> Id a
     -> Id b
-  (=<<) =
-    error "todo: Course.Monad (=<<)#instance Id"
+  (=<<) f (Id x) = f x
 
 -- | Binds a function on a List.
 --
@@ -94,8 +103,7 @@ instance Monad List where
     (a -> List b)
     -> List a
     -> List b
-  (=<<) =
-    error "todo: Course.Monad (=<<)#instance List"
+  (=<<) = flatMap
 
 -- | Binds a function on an Optional.
 --
@@ -106,8 +114,8 @@ instance Monad Optional where
     (a -> Optional b)
     -> Optional a
     -> Optional b
-  (=<<) =
-    error "todo: Course.Monad (=<<)#instance Optional"
+  (=<<) _ Empty    = Empty
+  (=<<) f (Full x) = f x
 
 -- | Binds a function on the reader ((->) t).
 --
@@ -115,11 +123,10 @@ instance Monad Optional where
 -- 119
 instance Monad ((->) t) where
   (=<<) ::
-    (a -> ((->) t b))
-    -> ((->) t a)
-    -> ((->) t b)
-  (=<<) =
-    error "todo: Course.Monad (=<<)#instance ((->) t)"
+    (a -> (->) t b)
+    -> (->) t a
+    -> (->) t b
+  (=<<) f r = \t -> f (r t) t
 
 -- | Flattens a combined structure to a single structure.
 --
@@ -138,8 +145,7 @@ join ::
   Monad f =>
   f (f a)
   -> f a
-join =
-  error "todo: Course.Monad#join"
+join mmx = id =<< mmx
 
 -- | Implement a flipped version of @(=<<)@, however, use only
 -- @join@ and @(<$>)@.
@@ -152,8 +158,7 @@ join =
   f a
   -> (a -> f b)
   -> f b
-(>>=) =
-  error "todo: Course.Monad#(>>=)"
+(>>=) m f = join $ (<$>) f m
 
 infixl 1 >>=
 
@@ -168,8 +173,7 @@ infixl 1 >>=
   -> (a -> f b)
   -> a
   -> f c
-(<=<) =
-  error "todo: Course.Monad#(<=<)"
+(<=<) f g x = f =<< g x
 
 infixr 1 <=<
 
