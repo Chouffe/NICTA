@@ -194,5 +194,10 @@ distinct xs =
 isHappy ::
   Integer
   -> Bool
-isHappy =
-  error "todo: Course.State#isHappy"
+isHappy n
+  | n <= 0 = False
+  | otherwise = let xs = produce squareAndSumDigits n
+                in case firstRepeat xs of
+                     Empty  -> False
+                     Full x -> x == 1
+  where squareAndSumDigits = toInteger . sum . map (\x -> x * x) . map digitToInt . show'
