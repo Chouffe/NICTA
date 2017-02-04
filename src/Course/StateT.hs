@@ -213,11 +213,12 @@ instance Functor f => Functor (OptionalT f) where
 instance Applicative f => Applicative (OptionalT f) where
   pure = OptionalT . pure . Full
   (<*>) (OptionalT f) (OptionalT x) =
-    OptionalT $ pure (\optf opt -> case (optf, opt) of
-                                     (Empty, _)       -> Empty
-                                     (_, Empty)       -> Empty
-                                     (Full g, Full y) -> Full $ g y) <*> f <*> x
+    -- OptionalT $ pure (\optf opt -> case (optf, opt) of
+    --                                  (Empty, _)       -> Empty
+    --                                  (_, Empty)       -> Empty
+    --                                  (Full g, Full y) -> Full $ g y) <*> f <*> x
                                      -- TODO: clean up and use the fact that Optional is an Applicative
+    OptionalT (lift2 (<*>) f x)
 
 -- | Implement the `Monad` instance for `OptionalT f` given a Monad f.
 --
@@ -225,9 +226,9 @@ instance Applicative f => Applicative (OptionalT f) where
 -- [Full 2,Full 3,Empty]
 instance Monad f => Monad (OptionalT f) where
   f =<< (OptionalT mx) =
-    OptionalT $ (\x -> case x of
-                         Empty  -> pure Empty
-                         Full a -> runOptionalT (f a)) =<< mx
+    OptionalT $ (\opt -> case opt of
+                           Empty  -> pure Empty
+                           Full a -> runOptionalT (f a)) =<< mx
 
 -- | A `Logger` is a pair of a list of log values (`[l]`) and an arbitrary value (`a`).
 data Logger l a =
