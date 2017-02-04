@@ -269,7 +269,7 @@ log1 ::
   l
   -> a
   -> Logger l a
-log1 l a = Logger (l:.Nil) a
+log1 l = Logger (l:.Nil)
 
 -- | Remove all duplicate integers from a list. Produce a log as you go.
 -- If there is an element above 100, then abort the entire computation and produce no result.
@@ -289,5 +289,12 @@ distinctG ::
   (Integral a, Show a) =>
   List a
   -> Logger Chars (Optional (List a))
-distinctG =
-  error "todo: Course.StateT#distinctG"
+distinctG xs =
+  runOptionalT $
+    evalT (filtering (\x ->
+      StateT $ \set ->
+      OptionalT (if x > 100
+                 then log1 ("aborting > 100: " ++ show' x) Empty
+                 else if even x
+                 then log1 ("even number: " ++ show' x) (Full (not $ S.member x set, S.insert x set))
+                 else Logger Nil (Full (not $ S.member x set, S.insert x set)))) xs) S.empty
