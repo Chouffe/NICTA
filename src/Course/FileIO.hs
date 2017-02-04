@@ -1,15 +1,15 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RebindableSyntax    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RebindableSyntax #-}
 
 module Course.FileIO where
 
-import Course.Core
-import Course.Applicative
-import Course.Monad
-import Course.Functor
-import Course.List
+import           Course.Applicative
+import           Course.Core
+import           Course.Functor
+import           Course.List
+import           Course.Monad
 
 {-
 
@@ -52,7 +52,7 @@ To test this module, load ghci in the root of the project directory, and do
 Example output:
 
 $ ghci
-GHCi, version ... 
+GHCi, version ...
 Loading package...
 Loading ...
 [ 1 of 28] Compiling (etc...
@@ -73,8 +73,7 @@ the contents of c
 -- /Tip:/ use @getArgs@ and @run@
 main ::
   IO ()
-main =
-  error "todo: Course.FileIO#main"
+main = run "data"
 
 type FilePath =
   Chars
@@ -83,31 +82,35 @@ type FilePath =
 run ::
   Chars
   -> IO ()
-run =
-  error "todo: Course.FileIO#run"
+run filepath = do
+  content <- readFile (filepath ++ "/files.txt")
+  putStrLn content
+  xs <- getFiles $ map (\filename -> filepath ++ "/" ++ filename) $ lines content
+  printFiles xs
 
 getFiles ::
   List FilePath
   -> IO (List (FilePath, Chars))
-getFiles =
-  error "todo: Course.FileIO#getFiles"
+-- TODO: use mapM
+getFiles xs = sequence $ map getFile xs
 
 getFile ::
   FilePath
   -> IO (FilePath, Chars)
-getFile =
-  error "todo: Course.FileIO#getFile"
+getFile fp = do
+  content <- readFile fp
+  return (fp, content)
 
 printFiles ::
   List (FilePath, Chars)
   -> IO ()
-printFiles =
-  error "todo: Course.FileIO#printFiles"
+printFiles Nil = return ()
+printFiles ((fp, content):.xs) = (\_ -> printFiles xs) =<< printFile fp content
 
 printFile ::
   FilePath
   -> Chars
   -> IO ()
-printFile =
-  error "todo: Course.FileIO#printFile"
-
+printFile fp content = do
+  putStrLn $ "============ " ++ fp
+  putStrLn content
