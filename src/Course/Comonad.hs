@@ -1,15 +1,15 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE InstanceSigs        #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE InstanceSigs #-}
 
 module Course.Comonad
 (
   Comonad(..)
 ) where
 
-import Course.Core
-import Course.Extend
-import Course.Id
+import           Course.Core
+import           Course.Extend
+import           Course.Id
 
 -- | All instances of the `Comonad` type-class must satisfy two laws. These
 -- laws are not checked by the compiler. These laws are given as:
@@ -32,8 +32,7 @@ instance Comonad Id where
   copure ::
     Id a
     -> a
-  copure =
-    error "todo: Course.Comonad copure#instance Id"
+  copure (Id a) = a
 
 -- | Witness that all things with (<<=) and copure also have (<$>).
 --
@@ -44,5 +43,4 @@ instance Comonad Id where
   (a -> b)
   -> f a
   -> f b
-(<$>) =
-  error "todo: Course.Comonad#(<$>)"
+f <$> m = f . copure <<= m
