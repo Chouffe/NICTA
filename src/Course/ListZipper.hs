@@ -531,7 +531,7 @@ nth n lz@(ListZipper l _ r)
   | n > lengthLeft + lengthRight = IsNotZ
   | n == lengthLeft = IsZ lz
   | n < lengthLeft = moveLeftN (lengthLeft - n) lz
-  | otherwise = moveRightN (lengthRight + lengthLeft + 1 - n) lz
+  | otherwise = moveRightN (n - lengthLeft) lz
   where lengthLeft = length l
         lengthRight = length r
 
