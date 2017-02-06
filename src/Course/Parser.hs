@@ -150,8 +150,10 @@ bindParser ::
   (a -> Parser b)
   -> Parser a
   -> Parser b
-bindParser =
-  error "todo: Course.Parser#bindParser"
+bindParser f (P parser) = P $ \input ->
+  case parser input of
+    ErrorResult e   -> ErrorResult e
+    Result input' x -> let (P parser') = f x in parser' input'
 
 -- | This is @bindParser@ with the arguments flipped.
 -- It might be more helpful to use this function if you prefer this argument order.
@@ -180,8 +182,7 @@ flbindParser =
   Parser a
   -> Parser b
   -> Parser b
-(>>>) =
-  error "todo: Course.Parser#(>>>)"
+p1 >>> p2 = bindParser (const p2) p1
 
 -- | Return a parser that tries the first parser for a successful value.
 --
@@ -204,8 +205,10 @@ flbindParser =
   Parser a
   -> Parser a
   -> Parser a
-(|||) =
-  error "todo: Course.Parser#(|||)"
+(P p1) ||| (P p2) = P $ \input ->
+  case p1 input of
+    ErrorResult _   -> p2 input
+    Result input' x ->  Result input' x
 
 infixl 3 |||
 
