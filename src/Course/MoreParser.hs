@@ -283,8 +283,7 @@ hex =
 -- True
 hexu ::
   Parser Char
-hexu =
-  error "todo: Course.MoreParser#hexu"
+hexu = is 'u' >>> hex
 
 -- | Write a function that produces a non-empty list of values coming off the given parser (which must succeed at least once),
 -- separated by the second given parser.
@@ -306,8 +305,10 @@ sepby1 ::
   Parser a
   -> Parser s
   -> Parser (List a)
-sepby1 =
-  error "todo: Course.MoreParser#sepby1"
+sepby1 p separator =
+  (\x ->
+    pure . (x:.) =<< list (separator >>> p)
+  ) =<< p
 
 -- | Write a function that produces a list of values coming off the given parser,
 -- separated by the second given parser.
@@ -329,8 +330,7 @@ sepby ::
   Parser a
   -> Parser s
   -> Parser (List a)
-sepby =
-  error "todo: Course.MoreParser#sepby"
+sepby p sep = sepby1 p sep ||| pure Nil
 
 -- | Write a parser that asserts that there is no remaining input.
 --
@@ -342,7 +342,10 @@ sepby =
 eof ::
   Parser ()
 eof =
-  error "todo: Course.MoreParser#eof"
+  P $ \input ->
+    case input of
+      Nil -> Result Nil ()
+      _   -> ErrorResult Failed
 
 -- | Write a parser that produces a character that satisfies all of the given predicates.
 --
@@ -365,8 +368,12 @@ eof =
 satisfyAll ::
   List (Char -> Bool)
   -> Parser Char
-satisfyAll =
-  error "todo: Course.MoreParser#satisfyAll"
+satisfyAll Nil = character
+satisfyAll (p:.ps) =
+  P $ \input ->
+    case parse (satisfy p) input of
+      Result _ _    -> parse (satisfyAll ps) input
+      ErrorResult e -> ErrorResult e
 
 -- | Write a parser that produces a character that satisfies any of the given predicates.
 --
@@ -386,8 +393,15 @@ satisfyAll =
 satisfyAny ::
   List (Char -> Bool)
   -> Parser Char
-satisfyAny =
-  error "todo: Course.MoreParser#satisfyAny"
+satisfyAny ps =
+  P $ \input ->
+    case input of
+      Nil     -> ErrorResult Failed
+      (c:.cs) ->
+        if any ($c) ps
+        then Result cs c
+        else ErrorResult Failed
+
 
 -- | Write a parser that parses between the two given characters, separated by a comma character ','.
 --
@@ -415,5 +429,5 @@ betweenSepbyComma ::
   -> Char
   -> Parser a
   -> Parser (List a)
-betweenSepbyComma =
-  error "todo: Course.MoreParser#betweenSepbyComma"
+betweenSepbyComma c1 c2 p =
+  betweenCharTok c1 c2 (sepby p (charTok ','))
