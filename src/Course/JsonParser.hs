@@ -1,19 +1,19 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RebindableSyntax    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RebindableSyntax #-}
 
 module Course.JsonParser where
 
-import Course.Core
-import Course.Parser
-import Course.MoreParser
-import Course.JsonValue
-import Course.Functor
-import Course.Applicative
-import Course.Monad
-import Course.List
-import Course.Optional
+import           Course.Applicative
+import           Course.Core
+import           Course.Functor
+import           Course.JsonValue
+import           Course.List
+import           Course.Monad
+import           Course.MoreParser
+import           Course.Optional
+import           Course.Parser
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -79,7 +79,7 @@ toSpecialCharacter c =
               ('\\', Backslash) :.
               Nil
   in snd <$> find ((==) c . fst) table
-  
+
 -- | Parse a JSON string. Handle double-quotes, special characters, hexadecimal characters. See http://json.org for the full list of control characters in JSON.
 --
 -- /Tip:/ Use `hex`, `fromSpecialCharacter`, `between`, `is`, `charTok`, `toSpecialCharacter`.
@@ -110,7 +110,21 @@ toSpecialCharacter c =
 jsonString ::
   Parser Chars
 jsonString =
-  error "todo: Course.JsonParser#jsonString"
+  between (is '"') (is '"') (list jsonChar)
+    where jsonChar = do
+            c1 <- character
+            if c1 == '\\'
+            then do
+              c2 <- character
+              if c2 == 'u'
+              then hex
+              else case toSpecialCharacter c2 of
+                     Empty            -> unexpectedCharParser c2
+                     Full specialChar -> return $ fromSpecialCharacter specialChar
+            else
+              if c1 == '"'
+              then unexpectedCharParser c1
+              else return c1
 
 -- | Parse a JSON rational.
 --
@@ -138,8 +152,18 @@ jsonString =
 -- True
 jsonNumber ::
   Parser Rational
-jsonNumber =
-  error "todo: Course.JsonParser#jsonNumber"
+jsonNumber = do
+  prefix <- character
+  if prefix == '-'
+  then do
+    rational <- jsonNumber
+    return (- rational)
+  else
+    P $ \input ->
+      case readFloats (prefix:.input) of
+        Empty                -> ErrorResult Failed
+        Full (rational, Nil) -> Result Nil rational
+        Full _               -> ErrorResult Failed
 
 -- | Parse a JSON true literal.
 --
@@ -152,8 +176,7 @@ jsonNumber =
 -- True
 jsonTrue ::
   Parser Chars
-jsonTrue =
-  error "todo: Course.JsonParser#jsonTrue"
+jsonTrue = stringTok "true"
 
 -- | Parse a JSON false literal.
 --
@@ -166,8 +189,7 @@ jsonTrue =
 -- True
 jsonFalse ::
   Parser Chars
-jsonFalse =
-  error "todo: Course.JsonParser#jsonFalse"
+jsonFalse = stringTok "false"
 
 -- | Parse a JSON null literal.
 --
@@ -180,8 +202,7 @@ jsonFalse =
 -- True
 jsonNull ::
   Parser Chars
-jsonNull =
-  error "todo: Course.JsonParser#jsonNull"
+jsonNull = stringTok "null"
 
 -- | Parse a JSON array.
 --
@@ -204,7 +225,11 @@ jsonNull =
 jsonArray ::
   Parser (List JsonValue)
 jsonArray =
-  error "todo: Course.JsonParser#jsonArray"
+  betweenSepbyComma '[' ']' jv
+    where jv = (const JsonTrue <$> jsonTrue) ||| (const JsonFalse <$> jsonFalse) ||| (JsonString <$> jsonString) ||| (JsonArray <$> jsonArray)
+
+-- TODO: JSON RATIONAL HERE!!!!
+
 
 -- | Parse a JSON object.
 --
