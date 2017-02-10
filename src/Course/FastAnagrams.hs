@@ -1,12 +1,12 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Course.FastAnagrams where
 
-import Course.Core
-import Course.List
-import Course.Functor
-import qualified Data.Set as S
+import           Course.Core
+import           Course.Functor
+import           Course.List
+import qualified Data.Set       as S
 
 -- Return all anagrams of the given string
 -- that appear in the given dictionary file.
@@ -14,8 +14,10 @@ fastAnagrams ::
   Chars
   -> Filename
   -> IO (List Chars)
-fastAnagrams =
-  error "todo: Course.FastAnagrams#fastAnagrams"
+fastAnagrams string filename =
+  let setA = S.fromList $ hlist $ permutations string
+      ioAnagrams = S.intersection setA . S.fromList . hlist . lines <$> readFile filename
+  in listh . S.toList <$> ioAnagrams
 
 newtype NoCaseString =
   NoCaseString {
