@@ -1,12 +1,12 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE OverloadedStrings #-}
 
 module Course.Anagrams where
 
-import Course.Core
-import Course.List
-import Course.Functor
+import           Course.Core
+import           Course.Functor
+import           Course.List
 
 {-
 
@@ -32,13 +32,17 @@ anagrams ::
   Chars
   -> Filename
   -> IO (List Chars)
-anagrams =
-  error "todo: Course.Anagrams#anagrams"
+anagrams string filename =
+  intersectBy equalIgnoringCase (permutations string) . lines <$> readFile filename
+-- anagrams string filename = do
+--   content <- readFile filename
+--   strings <- lines content
+--   return intersectBy equalIgnoringCase strings anagrams
+  -- where anagrams = permutations string
 
 -- Compare two strings for equality, ignoring case
 equalIgnoringCase ::
   Chars
   -> Chars
   -> Bool
-equalIgnoringCase =
-  error "todo: Course.Anagrams#equalIgnoringCase"
+equalIgnoringCase = on (==) (map toLower)
