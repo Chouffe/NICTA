@@ -1,16 +1,16 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE OverloadedStrings #-}
 
 module Course.Interactive where
 
-import Course.Core
-import Course.Functor
-import Course.Applicative
-import Course.Monad
-import Course.Traversable
-import Course.List
-import Course.Optional
+import           Course.Applicative
+import           Course.Core
+import           Course.Functor
+import           Course.List
+import           Course.Monad
+import           Course.Optional
+import           Course.Traversable
 
 -- | Eliminates any value over which a functor is defined.
 vooid ::
@@ -82,8 +82,9 @@ data Op =
 -- /Tip:/ @putStrLn :: String -> IO ()@ -- Prints a string and then a new line to standard output.
 convertInteractive ::
   IO ()
-convertInteractive =
-  error "todo: Course.Interactive#convertInteractive"
+convertInteractive = do
+  line <- getLine
+  putStrLn $ map toUpper line
 
 -- |
 --
@@ -110,8 +111,13 @@ convertInteractive =
 -- /Tip:/ @putStrLn :: String -> IO ()@ -- Prints a string and then a new line to standard output.
 reverseInteractive ::
   IO ()
-reverseInteractive =
-  error "todo: Course.Interactive#reverseInteractive"
+reverseInteractive = do
+  putStr "Enter file name to reverse: "
+  filenameToReverse <- getLine
+  putStr "Enter file name to write the reversed file to: "
+  filenameToWrite <- getLine
+  content <- readFile filenameToReverse
+  writeFile filenameToWrite (reverse content)
 
 -- |
 --
@@ -136,8 +142,17 @@ reverseInteractive =
 -- /Tip:/ @putStrLn :: String -> IO ()@ -- Prints a string and then a new line to standard output.
 encodeInteractive ::
   IO ()
-encodeInteractive =
-  error "todo: Course.Interactive#encodeInteractive"
+encodeInteractive = do
+  putStr "URL to encode: "
+  url <- getLine
+  putStrLn $ encodeUrl url
+
+encodeUrl :: Chars -> Chars
+encodeUrl Nil        = Nil
+encodeUrl (' ':.xs)  = "%20" ++ encodeUrl xs
+encodeUrl ('\t':.xs) = "%09" ++ encodeUrl xs
+encodeUrl ('\"':.xs) = "%22" ++ encodeUrl xs
+encodeUrl (x:.xs)    = x:.encodeUrl xs
 
 interactive ::
   IO ()
