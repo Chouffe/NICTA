@@ -161,9 +161,8 @@ jsonNumber = do
   else
     P $ \input ->
       case readFloats (prefix:.input) of
-        Empty                -> ErrorResult Failed
-        Full (rational, Nil) -> Result Nil rational
-        Full _               -> ErrorResult Failed
+        Empty               -> ErrorResult Failed
+        Full (rational, xs) -> Result xs rational
 
 -- | Parse a JSON true literal.
 --
@@ -224,12 +223,9 @@ jsonNull = stringTok "null"
 -- Result >< [JsonTrue,JsonString "abc",JsonArray [JsonFalse]]
 jsonArray ::
   Parser (List JsonValue)
-jsonArray =
-  betweenSepbyComma '[' ']' jv
-    where jv = (const JsonTrue <$> jsonTrue) ||| (const JsonFalse <$> jsonFalse) ||| (JsonString <$> jsonString) ||| (JsonArray <$> jsonArray)
+jsonArray = betweenSepbyComma '[' ']' jsonValue
 
--- TODO: JSON RATIONAL HERE!!!!
-
+-- What does Bool do in JsonRational?
 
 -- | Parse a JSON object.
 --
@@ -249,7 +245,14 @@ jsonArray =
 jsonObject ::
   Parser Assoc
 jsonObject =
-  error "todo: Course.JsonParser#jsonObject"
+  betweenSepbyComma '{' '}' keyValueTuple
+    where keyValueTuple = do
+            key <- jsonString
+            spaces
+            charTok ':'
+            spaces
+            value <- jsonValue
+            return (key, value)
 
 -- | Parse a JSON value.
 --
@@ -265,8 +268,12 @@ jsonObject =
 -- Result >< [("key1",JsonTrue),("key2",JsonArray [JsonRational False (7 % 1),JsonFalse]),("key3",JsonObject [("key4",JsonNull)])]
 jsonValue ::
   Parser JsonValue
-jsonValue =
-   error "todo: Course.JsonParser#jsonValue"
+jsonValue = do
+    spaces
+    value <- jv
+    spaces
+    return value
+  where jv = (const JsonNull <$> jsonNull) ||| (const JsonTrue <$> jsonTrue) ||| (const JsonFalse <$> jsonFalse) ||| (JsonString <$> jsonString) ||| (JsonArray <$> jsonArray) ||| (JsonRational False <$> jsonNumber) ||| (JsonArray <$> jsonArray) ||| (JsonObject <$> jsonObject)
 
 -- | Read a file into a JSON value.
 --
@@ -274,5 +281,4 @@ jsonValue =
 readJsonValue ::
   Filename
   -> IO (ParseResult JsonValue)
-readJsonValue =
-  error "todo: Course.JsonParser#readJsonValue"
+readJsonValue filename = parse jsonValue <$> readFile filename
