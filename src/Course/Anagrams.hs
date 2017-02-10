@@ -34,11 +34,6 @@ anagrams ::
   -> IO (List Chars)
 anagrams string filename =
   intersectBy equalIgnoringCase (permutations string) . lines <$> readFile filename
--- anagrams string filename = do
---   content <- readFile filename
---   strings <- lines content
---   return intersectBy equalIgnoringCase strings anagrams
-  -- where anagrams = permutations string
 
 -- Compare two strings for equality, ignoring case
 equalIgnoringCase ::

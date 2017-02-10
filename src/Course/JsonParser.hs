@@ -152,15 +152,9 @@ jsonString =
 -- True
 jsonNumber ::
   Parser Rational
-jsonNumber = do
-  prefix <- character
-  if prefix == '-'
-  then do
-    rational <- jsonNumber
-    return (- rational)
-  else
+jsonNumber =
     P $ \input ->
-      case readFloats (prefix:.input) of
+      case readFloats input of
         Empty               -> ErrorResult Failed
         Full (rational, xs) -> Result xs rational
 
@@ -246,13 +240,7 @@ jsonObject ::
   Parser Assoc
 jsonObject =
   betweenSepbyComma '{' '}' keyValueTuple
-    where keyValueTuple = do
-            key <- jsonString
-            spaces
-            charTok ':'
-            spaces
-            value <- jsonValue
-            return (key, value)
+    where keyValueTuple = (,) <$> (jsonString <* spaces <* charTok ':' <* spaces) <*> jsonValue
 
 -- | Parse a JSON value.
 --
@@ -268,12 +256,15 @@ jsonObject =
 -- Result >< [("key1",JsonTrue),("key2",JsonArray [JsonRational False (7 % 1),JsonFalse]),("key3",JsonObject [("key4",JsonNull)])]
 jsonValue ::
   Parser JsonValue
-jsonValue = do
-    spaces
-    value <- jv
-    spaces
-    return value
-  where jv = (const JsonNull <$> jsonNull) ||| (const JsonTrue <$> jsonTrue) ||| (const JsonFalse <$> jsonFalse) ||| (JsonString <$> jsonString) ||| (JsonArray <$> jsonArray) ||| (JsonRational False <$> jsonNumber) ||| (JsonArray <$> jsonArray) ||| (JsonObject <$> jsonObject)
+jsonValue =
+  spaces *>
+    (JsonNull <$ jsonNull
+  ||| JsonTrue <$ jsonTrue
+  ||| JsonFalse <$ jsonFalse
+  ||| JsonString <$> jsonString
+  ||| JsonArray <$> jsonArray
+  ||| JsonRational False <$> jsonNumber
+  ||| JsonObject <$> jsonObject)
 
 -- | Read a file into a JSON value.
 --

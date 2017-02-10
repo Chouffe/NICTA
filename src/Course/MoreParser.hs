@@ -74,7 +74,7 @@ tok p = (\x -> spaces >>> pure x) =<< p
 charTok ::
   Char
   -> Parser Char
-charTok c = tok (is c)
+charTok = tok . is
 
 -- | Write a parser that parses a comma ',' followed by 0 or more spaces.
 --
@@ -368,12 +368,13 @@ eof =
 satisfyAll ::
   List (Char -> Bool)
   -> Parser Char
-satisfyAll Nil = character
-satisfyAll (p:.ps) =
-  P $ \input ->
-    case parse (satisfy p) input of
-      Result _ _    -> parse (satisfyAll ps) input
-      ErrorResult e -> ErrorResult e
+satisfyAll ps = satisfy (and . sequence ps)
+-- satisfyAll Nil = character
+-- satisfyAll (p:.ps) =
+--   P $ \input ->
+--     case parse (satisfy p) input of
+--       Result _ _    -> parse (satisfyAll ps) input
+--       ErrorResult e -> ErrorResult e
 
 -- | Write a parser that produces a character that satisfies any of the given predicates.
 --
@@ -393,14 +394,15 @@ satisfyAll (p:.ps) =
 satisfyAny ::
   List (Char -> Bool)
   -> Parser Char
-satisfyAny ps =
-  P $ \input ->
-    case input of
-      Nil     -> ErrorResult Failed
-      (c:.cs) ->
-        if any ($c) ps
-        then Result cs c
-        else ErrorResult Failed
+satisfyAny ps = satisfy (or . sequence ps)
+-- satisfyAny ps =
+--   P $ \input ->
+--     case input of
+--       Nil     -> ErrorResult Failed
+--       (c:.cs) ->
+--         if any ($c) ps
+--         then Result cs c
+--         else ErrorResult Failed
 
 
 -- | Write a parser that parses between the two given characters, separated by a comma character ','.
