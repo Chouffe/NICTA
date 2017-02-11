@@ -31,14 +31,16 @@ instance Show Cell where
   show E   = " "
 
 data Board =
-    Board ( (Cell, Cell, Cell)
-          , (Cell, Cell, Cell)
-          , (Cell, Cell, Cell)
-          )
-  | FinishedBoard  ( (Cell, Cell, Cell)
-                   , (Cell, Cell, Cell)
-                   , (Cell, Cell, Cell)
-                   )
+    Board
+    ( (Cell, Cell, Cell)
+    , (Cell, Cell, Cell)
+    , (Cell, Cell, Cell)
+    )
+  | FinishedBoard
+  ( (Cell, Cell, Cell)
+  , (Cell, Cell, Cell)
+  , (Cell, Cell, Cell)
+  )
   deriving (Eq, Show)
 
 showRow :: (Cell, Cell, Cell) -> Chars
@@ -65,9 +67,10 @@ isValidPosition x y = x >= 0 && x < 3 && y >= 0 && y < 3
 
 emptyBoard :: Board
 emptyBoard =
-  Board ( (E, E, E)
-        , (E, E, E)
-        , (E, E, E))
+  Board
+  ( (E, E, E)
+  , (E, E, E)
+  , (E, E, E))
 
 third :: (a, b, c) -> c
 third (_, _, c) = c
@@ -221,8 +224,15 @@ winner b@(Board (row1, row2, row3))
 
   where tripleEq (x, y, z) = x == y && y == z && x /= E
 
+nextPlayer :: Player -> Player
+nextPlayer P1 = P2
+nextPlayer P2 = P1
+
+-- Test some moves
 game :: Optional Board
 game = move (1, 1) P1 emptyBoard >>= move (0, 0) P2 >>= move (2, 1) P1
+
+-- Game can be run by using `gameLoop`
 
 gameRound :: Board -> Player -> IO Board
 gameRound board player = do
@@ -243,9 +253,6 @@ gameRound board player = do
         Empty -> putStrLn "Could not move there..." >> gameRound board player
         Full newBoard -> pure newBoard
 
-nextPlayer :: Player -> Player
-nextPlayer P1 = P2
-nextPlayer P2 = P1
 
 endGame :: Board -> IO Board
 endGame board@(Board _) = putStrLn "Unfinished Game..." >> pure board
