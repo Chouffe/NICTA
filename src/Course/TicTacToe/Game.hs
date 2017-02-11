@@ -12,6 +12,8 @@ import           Course.Interactive
 import           Course.List
 import           Course.Monad
 import           Course.Optional
+import           Course.State
+import           Course.StateT
 import           Course.Traversable
 
 
@@ -274,3 +276,28 @@ gameLoop board@(Board b) player k =
 -- TODO: create a List version of TicTacToe to avoid so many pattern matchings
 -- TODO: create a State version of this and use until
 -- TODO: test game with quickCheck and Hspec
+
+type GameState = (Board, Integer, Player)
+
+-- (s -> IO (value, state))
+-- liftIO
+
+-- gameRound2 :: StateT GameState IO ()
+-- gameRound2 = do
+--   (board, k, player) <- getT
+--   liftIO $ putStrLn $ "Player to play: " ++ show' player
+--   liftIO $ putStrLn "Board"
+--   liftIO $ putStrLn $ showBoard board
+--   liftIO $ putStr "Enter a x: "
+--   x <- liftIO $ toInteger . digitToInt <$> getChar
+--   liftIO $ putStrLn ""
+--   liftIO $ putStr "Enter a y: "
+--   y <- liftIO $ toInteger . digitToInt <$> getChar
+--   liftIO $ putStrLn ""
+--   let pos = (x, y)
+--   if positionIsOccupied board pos
+--     then liftIO (putStrLn "Pick a free position...") >> gameRound2
+--     else
+--       case move pos player board of
+--         Empty         -> liftIO (putStrLn "Pick a free position...") >> gameRound2
+--         Full newBoard -> modify (\(_, n, player) -> (newBoard, n, player))
