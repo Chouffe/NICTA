@@ -15,11 +15,9 @@ import           Course.Optional
 import           Course.Traversable
 
 
-data Player = P1 | P2 deriving (Eq)
+-- TODO: move certain functions to utils
 
-instance Show Player where
-  show P1 = "x"
-  show P2 = "o"
+data Player = P1 | P2 deriving (Eq, Show)
 
 type Position = (Integer, Integer)
 
@@ -43,6 +41,8 @@ data Board =
   )
   deriving (Eq, Show)
 
+-- TODO: instance Show Board instead
+
 showRow :: (Cell, Cell, Cell) -> Chars
 showRow (x, y, z) =
   show' x ++ "|" ++ show' y ++ "|" ++ show' z
@@ -51,7 +51,6 @@ showBoard :: Board -> Chars
 showBoard b@(FinishedBoard _) = showBoard b
 showBoard (Board (row1, row2, row3)) =
   showRow row1 ++ "\n" ++ showRow row2 ++ "\n" ++ showRow row3 ++ "\n"
-
 
 tripleToList :: (a, a, a) -> List a
 tripleToList (x, y, z) = x:.y:.z:.Nil
@@ -274,3 +273,4 @@ gameLoop board@(Board b) player k =
 
 -- TODO: create a List version of TicTacToe to avoid so many pattern matchings
 -- TODO: create a State version of this and use until
+-- TODO: test game with quickCheck and Hspec
